@@ -1,0 +1,49 @@
+version: '3.7'
+
+services:
+  loader:
+    container_name: ig-loader
+    image: dk-medcom-carecommunication-ig:latest
+    #restart: on-failure
+    #command: ["sleep","infinity"]
+    environment:
+      FHIR_SERVER_BASE: "http://fhir-loader:8080/fhir"
+    depends_on:
+      - fhir-loader
+    #    condition: service_healthy
+  fhir-loader:
+    container_name: fhir-loader
+    image: kvalitetsit/hapi-fhir-jpaserver-starter:latest
+    configs:
+      - source: hapi
+        target: /app/config/application.yaml
+    depends_on:
+      - db
+
+  fhir:
+    container_name: fhir
+    #image: "hapiproject/hapi:latest"
+    image: kvalitetsit/hapi-fhir-jpaserver-starter:latest
+    ports:
+      - "8080:8080"
+    configs:
+      - source: hapi
+        target: /app/config/application.yaml
+    depends_on:
+      loader:
+        condition: service_completed_successfully
+    
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: hapi
+    #volumes:
+    #  - ./hapi.postgress.data:/var/lib/postgresql/data
+
+configs:
+  hapi:
+     file: ./application.yaml
+  

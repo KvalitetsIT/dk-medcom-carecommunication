@@ -1,0 +1,2 @@
+i projekt roden kør:
+docker build -f docker/Dockerfile . -t dk-medcom-carecommunication-ig:latest
